@@ -1,0 +1,22 @@
+spring:
+  jpa:
+    open-in-view: false #영속성 컨텍스트가 transactional 범위 넘어서 까지 살아있지 않으니 false
+    generate-ddl: true #@Entity 를 찾아서 서버 시작 시점에 ddl 문을 생성해서 db에 적용을 함.
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true #쿼리문이 보여지게 나갈 때 예쁘게 formatting 되서 보여짐.
+        #generate_statistics: false
+        jdbc:
+          batch_size: 10
+        order_inserts: true # 이거 실제적으로 쿼리가 날라갈때 entity 별로 묶어서 배치 형태로 날리는 방법. 기억안나면 다시 검색
+
+  datasource:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://localhost:1433;databaseName=weather;username=weather;password=weather;
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
