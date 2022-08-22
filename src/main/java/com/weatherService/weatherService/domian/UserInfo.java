@@ -40,8 +40,6 @@ public class UserInfo {
     @Column(name = "temp_code")
     private String tempCode;
 
-    @Column(name = "session_info")
-    private String sessionInfo;
 
     public UserInfo(String userId, String password, String email, long addressId){
         this.userId = userId;
@@ -53,6 +51,5 @@ public class UserInfo {
         Date date = new Date(max);
         this.expiredPeriod = new Timestamp(date.getTime());
         this.tempCode = "";
-        this.sessionInfo = "";
     }
 }

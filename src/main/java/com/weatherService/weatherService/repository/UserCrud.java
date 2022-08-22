@@ -158,20 +158,12 @@ public class UserCrud extends QuerydslRepositorySupport {
         delete.execute();
     }
 
-    @Transactional
-    public void setUserSessionInfo(String userId, String sessionInfo) {
-        QUserInfo qUserInfo = QUserInfo.userInfo;
-        JPAUpdateClause update = factory.update(qUserInfo)
-                .where(qUserInfo.userId.eq(userId))
-                .set(qUserInfo.sessionInfo, sessionInfo);
-        update.execute();
-    }
-
-    public UserInfo getUserBySessionInfo(String sessionInfo){
+    public UserInfo getUser(long id){
         QUserInfo qUserInfo = QUserInfo.userInfo;
         return factory.selectFrom(qUserInfo)
-                .where(qUserInfo.sessionInfo.eq(sessionInfo))
+                .where(qUserInfo.id.eq(id))
                 .fetchOne();
     }
+
 }
 

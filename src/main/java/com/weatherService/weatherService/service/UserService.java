@@ -1,9 +1,11 @@
 package com.weatherService.weatherService.service;
 
 import com.weatherService.weatherService.domian.Address;
+import com.weatherService.weatherService.domian.SessionInfo;
 import com.weatherService.weatherService.domian.UserInfo;
 import com.weatherService.weatherService.domian.en.UserStatus;
 import com.weatherService.weatherService.repository.AddressCrud;
+import com.weatherService.weatherService.repository.SessionCrud;
 import com.weatherService.weatherService.repository.UserCrud;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ public class UserService {
     private UserCrud userCrud;
     @Autowired
     private AddressCrud addressCrud;
+    @Autowired
+    private SessionCrud sessionCrud;
 
     private void validateUserId(String userId){
 
@@ -196,23 +200,14 @@ public class UserService {
         userCrud.deleteUser(userId);
     }
 
-    public String login(String userId, String password) {
+    public void login(String userId, String password, int minutes) {
         UserInfo user = userCrud.getUserByUserIdByPassword(userId, password);
         if(user==null){
             throw new IllegalStateException("등록된 사용자 정보가 없습니다.");
         }
-        String sessionInfo = getRandomStr(15);
-        userCrud.setUserSessionInfo(userId, sessionInfo);
+        String sessionStr = getRandomStr(15);
+        SessionInfo session = new SessionInfo(user.getId(), sessionStr, minutes);
+        sessionCrud.save(session);
 
-        Timer timer = new Timer(true);
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                userCrud.setUserSessionInfo(userId, null);
-            }
-        };
-        timer.schedule(task, 1000*60*30);
-
-        return sessionInfo;
     }
 }

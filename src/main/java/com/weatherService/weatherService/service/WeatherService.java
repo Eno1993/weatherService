@@ -2,6 +2,7 @@ package com.weatherService.weatherService.service;
 
 import ch.qos.logback.classic.Logger;
 import com.weatherService.weatherService.domian.Address;
+import com.weatherService.weatherService.domian.SessionInfo;
 import com.weatherService.weatherService.domian.UserInfo;
 import com.weatherService.weatherService.domian.Weather;
 import com.weatherService.weatherService.repository.AddressCrud;
@@ -32,15 +33,23 @@ public class WeatherService {
     private UserCrud userCrud;
     @Autowired
     private AddressCrud addressCrud;
+    @Autowired
+    private SessionService sessionService;
     private final String key = "1bPCbBtr1ndsGEZ3S9F/mX9Zv9SBNPveHu3GIGaWkpocDn3jw7rkU2GCCxeMsSVLkh/BL+R/Nup+X1LstbrMcA==";
     private Map<String, List<String[]>> map = new HashMap<>();
 
-    public Weather getWeather(String sessionInfo){
+    public Weather getWeather(String sessionStr){
 
-        UserInfo user = userCrud.getUserBySessionInfo(sessionInfo);
-        if(user==null){
-            throw new IllegalStateException("잘못된 Session 정보 입력.");
+        SessionInfo session = sessionService.getSession(sessionStr);
+        if(session==null){
+            throw new IllegalStateException("session 이 만료되었거나 존재하지 않습니다.");
         }
+
+        UserInfo user = userCrud.getUser(session.getUserId());
+        if(user==null){
+            throw new IllegalStateException("사용자 정보를 받아오지 못했습니다.");
+        }
+
         Address address = addressCrud.getAddressById(user.getAddressId());
 
         LocalDateTime now = LocalDateTime.now();

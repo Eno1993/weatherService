@@ -76,9 +76,10 @@ public class WeatherServiceController {
     }
 
     @GetMapping("/user/login")
-    public String login(@RequestParam("userId") String userId,
-                        @RequestParam("password") String password){
-        return userService.login(userId, password);
+    public void login(@RequestParam("userId") String userId,
+                        @RequestParam("password") String password,
+                        @RequestParam("sessionExpiredTime") int minutes){
+        userService.login(userId, password, minutes);
     }
 
     @GetMapping("/weather/get")
