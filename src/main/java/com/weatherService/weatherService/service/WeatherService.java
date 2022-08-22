@@ -46,8 +46,8 @@ public class WeatherService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime time;
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
-        String yyyy = format.format(now);
+//        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+//        String yyyy = format.format(now);
 
         if(now.getHour()<2){
             time = now.minusDays(1);
@@ -68,8 +68,13 @@ public class WeatherService {
         String baseTime = getBaseTime(now.getHour(), now.getMinute());
 
         GpsTransfer gpsTransfer = new GpsTransfer();
-        //gpsTransfer.transfer(1, 126.929810, Math.round(address.getY() * 1000) / 1000.0);
+        gpsTransfer.transfer(1, address.getX(), address.getY());
         System.out.println(gpsTransfer.getLat()+"  "+gpsTransfer.getLng());
+
+        int x = (int)Math.round(gpsTransfer.getLat());
+        int y = (int)Math.round(gpsTransfer.getLng());
+        System.out.println(x+ "   "+y);
+
 
         StringBuffer buffer = new StringBuffer();
         String strResult = "";
@@ -81,8 +86,8 @@ public class WeatherService {
             urlBuilder.append("&" + URLEncoder.encode("dataType","UTF-8") + "=" + URLEncoder.encode("JSON", "UTF-8"));
             urlBuilder.append("&" + URLEncoder.encode("base_date","UTF-8") + "=" + URLEncoder.encode(baseDate, "UTF-8"));
             urlBuilder.append("&" + URLEncoder.encode("base_time","UTF-8") + "=" + URLEncoder.encode(baseTime, "UTF-8"));
-            urlBuilder.append("&" + URLEncoder.encode("nx","UTF-8") + "="+ URLEncoder.encode("55", "UTF-8"));
-            urlBuilder.append("&" + URLEncoder.encode("ny","UTF-8") + "=" + URLEncoder.encode("127", "UTF-8"));
+            urlBuilder.append("&" + URLEncoder.encode("nx","UTF-8") + "="+ URLEncoder.encode(String.valueOf(x), "UTF-8"));
+            urlBuilder.append("&" + URLEncoder.encode("ny","UTF-8") + "=" + URLEncoder.encode(String.valueOf(y), "UTF-8"));
             URL url = new URL(urlBuilder.toString());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 

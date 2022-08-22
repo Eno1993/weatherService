@@ -15,7 +15,7 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "pun_code", unique = true)
+    @Column(name = "pun_code")
     private String punCode;
 
     @Column(name = "zip_code")

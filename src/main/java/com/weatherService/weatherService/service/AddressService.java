@@ -33,8 +33,6 @@ public class AddressService {
             urlBuilder.append("&request=" + URLEncoder.encode("search", "UTF-8"));
             urlBuilder.append("&version=" + URLEncoder.encode("2.0", "UTF-8"));
             urlBuilder.append("&crs=" + URLEncoder.encode("EPSG:4326", "UTF-8"));
-            //urlBuilder.append("&crs=" + URLEncoder.encode("EPSG:900913", "UTF-8"));
-            //`urlBuilder.append("&bbox=" + URLEncoder.encode("14140071.146077,4494339.6527027,14160071.146077,4496339.6527027", "UTF-8"));
             urlBuilder.append("&size=" + URLEncoder.encode("100", "UTF-8"));
             urlBuilder.append("&page=" + URLEncoder.encode("1", "UTF-8"));
             urlBuilder.append("&query=" + URLEncoder.encode(addressStr, "UTF-8"));
@@ -77,7 +75,6 @@ public class AddressService {
         List<Address> addressList = new ArrayList<>();
 
         JSONObject response = jsonObject.getJSONObject("response");
-        System.out.println("response : " + response);
         String status = response.getString("status");
         if (status.equals("NOT_FOUND")) {
             throw new IllegalStateException("주소 정보를 찾지 못했습니다.");
