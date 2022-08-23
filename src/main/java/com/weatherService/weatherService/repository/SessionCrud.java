@@ -19,7 +19,6 @@ public class SessionCrud extends QuerydslRepositorySupport {
 
     @Autowired
     private SessionRepo sessionRepo;
-
     @Autowired
     private JPAQueryFactory factory;
 
@@ -29,12 +28,12 @@ public class SessionCrud extends QuerydslRepositorySupport {
         sessionRepo.save(sessionInfo);
     }
 
-    public SessionInfo get(String sessionStr){
+    public SessionInfo getSessionBySessionStr(String sessionStr){
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         QSessionInfo qSessionInfo = QSessionInfo.sessionInfo;
         return factory.selectFrom(qSessionInfo)
-                .where(qSessionInfo.session.eq(sessionStr)
+                .where(qSessionInfo.sessionStr.eq(sessionStr)
                         .and(qSessionInfo.expiredTime.after(now)))
                 .fetchOne();
     }
@@ -46,6 +45,14 @@ public class SessionCrud extends QuerydslRepositorySupport {
         QSessionInfo qSessionInfo = QSessionInfo.sessionInfo;
         JPADeleteClause delete = factory.delete(qSessionInfo)
                 .where(qSessionInfo.expiredTime.before(now));
+        delete.execute();
+    }
+
+    @Transactional
+    public void deleteDupleSession(long userId){
+        QSessionInfo qSessionInfo = QSessionInfo.sessionInfo;
+        JPADeleteClause delete = factory.delete(qSessionInfo)
+                .where(qSessionInfo.userId.eq(userId));
         delete.execute();
     }
 

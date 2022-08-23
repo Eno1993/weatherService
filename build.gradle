@@ -1,8 +1,10 @@
 buildscript {
 	ext {
 		queryDslVersion = "5.0.0"
+		springCloudVersion = "2021.0.1"
 	}
 }
+
 
 plugins {
 	id 'org.springframework.boot' version '2.7.2'
@@ -10,8 +12,6 @@ plugins {
 	id 'java'
 	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
 }
-
-
 
 group = 'com.weatherService'
 version = '0.0.1-SNAPSHOT'
@@ -49,6 +49,14 @@ dependencies {
 	//json
 	implementation 'org.json:json:20211205'
 
+	//feign client
+	implementation "org.springframework.cloud:spring-cloud-starter-openfeign"
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+	}
 }
 
 tasks.named('test') {

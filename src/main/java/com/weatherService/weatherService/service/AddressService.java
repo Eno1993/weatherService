@@ -1,5 +1,7 @@
 package com.weatherService.weatherService.service;
 
+import com.weatherService.weatherService.client.dto.addressDto.search;
+import com.weatherService.weatherService.client.feign.AddressClient;
 import com.weatherService.weatherService.domian.Address;
 import com.weatherService.weatherService.repository.AddressCrud;
 import org.json.JSONArray;
@@ -20,6 +22,8 @@ public class AddressService {
 
     @Autowired
     private AddressCrud addressCrud;
+    @Autowired
+    private AddressClient addressClient;
     private final String key = "CDC17206-0BD4-35D3-8105-7A948C05C9C7";
 
     public int saveAllAddress(String addressStr) {
@@ -102,5 +106,22 @@ public class AddressService {
 
     public List<Address> getAllAddress() {
         return addressCrud.getAddressAll();
+    }
+
+    public search getAddressInfo(String address){
+        return addressClient.getAddressInfo(
+                "search",
+                "search",
+                "2.0",
+                "EPSG:4326",
+                "10",
+                "1",
+                address,
+                "address",
+                "road",
+                "json",
+                "json",
+                key
+        );
     }
 }

@@ -89,7 +89,7 @@ public class UserCrud extends QuerydslRepositorySupport {
     }
 
     @Transactional
-    public void checkUserStatus(String userId) {
+    public void expireUserStatus(String userId) {
 
         //해당 유저의 상태를 확인하고 expired_period 가 현재 시간보다 더 이전일 경우 해당유저의 정보를 expire 한다.
         Timestamp  now = Timestamp.valueOf(LocalDateTime.now());
@@ -120,7 +120,7 @@ public class UserCrud extends QuerydslRepositorySupport {
     }
 
     @Transactional
-    public void updateUserInfo(String userId, String newUserId, String newPassword, String newEmail, Long newAddressId){
+    public void updateUser(String userId, String newUserId, String newPassword, String newEmail, Long newAddressId){
 
         QUserInfo qUserInfo = QUserInfo.userInfo;
         JPAUpdateClause update = factory.update(qUserInfo)
@@ -145,7 +145,6 @@ public class UserCrud extends QuerydslRepositorySupport {
         if(newAddressId!=null){
             update.set(qUserInfo.addressId, newAddressId);
         }
-
         update.execute();
     }
 
@@ -158,7 +157,7 @@ public class UserCrud extends QuerydslRepositorySupport {
         delete.execute();
     }
 
-    public UserInfo getUser(long id){
+    public UserInfo getUserById(long id){
         QUserInfo qUserInfo = QUserInfo.userInfo;
         return factory.selectFrom(qUserInfo)
                 .where(qUserInfo.id.eq(id))

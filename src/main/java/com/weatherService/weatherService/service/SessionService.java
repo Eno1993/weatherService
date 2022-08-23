@@ -28,14 +28,5 @@ public class SessionService {
             }
         };
         scheduler.schedule(runnable, new CronTrigger("0 0 0/1 * * *"));
-
-    }
-
-    public void saveSession(SessionInfo session){
-        sessionCrud.save(session);
-    }
-
-    public SessionInfo getSession(String sessionStr){
-        return sessionCrud.get(sessionStr);
     }
 }

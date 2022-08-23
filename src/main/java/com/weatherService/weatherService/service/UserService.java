@@ -113,7 +113,7 @@ public class UserService {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                userCrud.checkUserStatus(userId);
+                userCrud.expireUserStatus(userId);
             }
         };
 
@@ -188,7 +188,7 @@ public class UserService {
             validateAddress(newAddressId);
         }
 
-        userCrud.updateUserInfo(userId, newUserId, newPassword, newEmail, newAddressId);
+        userCrud.updateUser(userId, newUserId, newPassword, newEmail, newAddressId);
 
     }
 
@@ -200,14 +200,17 @@ public class UserService {
         userCrud.deleteUser(userId);
     }
 
-    public void login(String userId, String password, int minutes) {
+    public String login(String userId, String password, int minutes) {
         UserInfo user = userCrud.getUserByUserIdByPassword(userId, password);
         if(user==null){
             throw new IllegalStateException("등록된 사용자 정보가 없습니다.");
         }
+        sessionCrud.deleteDupleSession(user.getId());
+
         String sessionStr = getRandomStr(15);
         SessionInfo session = new SessionInfo(user.getId(), sessionStr, minutes);
         sessionCrud.save(session);
+        return sessionStr;
 
     }
 }

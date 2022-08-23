@@ -18,8 +18,8 @@ public class SessionInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "session")
-    private String session;
+    @Column(name = "session_string")
+    private String sessionStr;
 
     @Column(name = "expired_time")
     private Timestamp expiredTime;
@@ -27,9 +27,9 @@ public class SessionInfo {
     @Column(name = "user_id")
     private long userId;
 
-    public SessionInfo(long id, String session, int minutes){
+    public SessionInfo(long id, String sessionStr, int minutes){
         this.userId = id;
-        this.session = session;
+        this.sessionStr = sessionStr;
 
         Timestamp timestamp = Timestamp.valueOf(LocalDateTime.now());
         Calendar calendar = Calendar.getInstance();

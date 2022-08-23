@@ -1,5 +1,7 @@
 package com.weatherService.weatherService.controller;
 
+import com.weatherService.weatherService.client.dto.addressDto.search;
+import com.weatherService.weatherService.client.dto.weatherDto.vilageFcst;
 import com.weatherService.weatherService.domian.Address;
 import com.weatherService.weatherService.domian.UserInfo;
 import com.weatherService.weatherService.domian.Weather;
@@ -76,15 +78,28 @@ public class WeatherServiceController {
     }
 
     @GetMapping("/user/login")
-    public void login(@RequestParam("userId") String userId,
+    public String login(@RequestParam("userId") String userId,
                         @RequestParam("password") String password,
                         @RequestParam("sessionExpiredTime") int minutes){
-        userService.login(userId, password, minutes);
+        return userService.login(userId, password, minutes);
     }
 
     @GetMapping("/weather/get")
     public Weather getWeatherInfo(@RequestParam("sessionInfo") String sessionInfo){
         return weatherService.getWeather(sessionInfo);
+    }
+
+    @GetMapping("/weather/get/new")
+    public vilageFcst getWeatherInfoNew(
+            @RequestParam(name = "sessionInfo") String sessionStr,
+            @RequestParam(name = "pageNo", defaultValue = "1") int pageNo,
+            @RequestParam(name = "numOfRows", defaultValue = "1000") int numOfRows){
+        return weatherService.getWeatherInfo(sessionStr, pageNo, numOfRows);
+    }
+
+    @GetMapping("/address/get/new")
+    public search getAddressInfoNew(@RequestParam("address") String address){
+        return addressService.getAddressInfo(address);
     }
 
 }

@@ -1,15 +1,14 @@
 package com.weatherService.weatherService.service;
 
-import ch.qos.logback.classic.Logger;
+import com.weatherService.weatherService.client.dto.weatherDto.vilageFcst;
 import com.weatherService.weatherService.domian.Address;
 import com.weatherService.weatherService.domian.SessionInfo;
 import com.weatherService.weatherService.domian.UserInfo;
 import com.weatherService.weatherService.domian.Weather;
 import com.weatherService.weatherService.repository.AddressCrud;
+import com.weatherService.weatherService.repository.SessionCrud;
 import com.weatherService.weatherService.repository.UserCrud;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
+import com.weatherService.weatherService.client.feign.WeatherClient;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,6 +20,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,47 +34,43 @@ public class WeatherService {
     @Autowired
     private AddressCrud addressCrud;
     @Autowired
-    private SessionService sessionService;
+    private SessionCrud sessionCrud;
+    @Autowired
+    private WeatherClient weatherClient;
     private final String key = "1bPCbBtr1ndsGEZ3S9F/mX9Zv9SBNPveHu3GIGaWkpocDn3jw7rkU2GCCxeMsSVLkh/BL+R/Nup+X1LstbrMcA==";
     private Map<String, List<String[]>> map = new HashMap<>();
 
     public Weather getWeather(String sessionStr){
 
-        SessionInfo session = sessionService.getSession(sessionStr);
+        SessionInfo session = sessionCrud.getSessionBySessionStr(sessionStr);
         if(session==null){
             throw new IllegalStateException("session 이 만료되었거나 존재하지 않습니다.");
         }
 
-        UserInfo user = userCrud.getUser(session.getUserId());
+        UserInfo user = userCrud.getUserById(session.getUserId());
         if(user==null){
             throw new IllegalStateException("사용자 정보를 받아오지 못했습니다.");
         }
 
         Address address = addressCrud.getAddressById(user.getAddressId());
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime time;
-
-//        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
-//        String yyyy = format.format(now);
-
-        if(now.getHour()<2){
-            time = now.minusDays(1);
-        }else{
-            time = now;
+        if(address==null){
+            throw new IllegalStateException("사용자 주소 정보를 받아오지 못했습니다.");
         }
-        String year = String.valueOf(time.getYear());
-        String month = String.valueOf(time.getMonthValue());
-        if(month.length()==1){ month = "0" + month; }
-        String day = String.valueOf(time.getDayOfMonth());
-        if(day.length()==1){ day = "0" + day; }
-        String hour = Integer.toString(now.getHour()+1) + "00";
-        if(hour.length()==1){ hour = "0" + hour; }
 
+        LocalDateTime time = LocalDateTime.now();
+        if(time.getHour()<2){
+            time.minusDays(1);
+        }
+        Date date = Timestamp.valueOf(time);
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        String baseDate = dateFormat.format(date);
+        String baseTime = getBaseTime(time.getHour(), time.getMinute());
 
-        String baseDate = year + month + day;
-        String baseTime = getBaseTime(now.getHour(), now.getMinute());
+        time.plusHours(1);
+        date = Timestamp.valueOf(time);
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH00");
+        String hour = timeFormat.format(date);
 
         GpsTransfer gpsTransfer = new GpsTransfer();
         gpsTransfer.transfer(1, address.getX(), address.getY());
@@ -82,8 +78,6 @@ public class WeatherService {
 
         int x = (int)Math.round(gpsTransfer.getLat());
         int y = (int)Math.round(gpsTransfer.getLng());
-        System.out.println(x+ "   "+y);
-
 
         StringBuffer buffer = new StringBuffer();
         String strResult = "";
@@ -137,11 +131,11 @@ public class WeatherService {
             weather.setFcstTime(hour);
             return weather;
         }else{
-            throw new IllegalStateException("비었으 ㅋ");
+            throw new IllegalStateException("날씨 정보를 제대로 받아오지 못했습니다.");
         }
     }
 
-    private void parsingJsonToMap(String strResult) {
+    public void parsingJsonToMap(String strResult) {
 
         JSONObject jsonObject = new JSONObject(strResult);
         JSONObject response = jsonObject.getJSONObject("response");
@@ -151,7 +145,7 @@ public class WeatherService {
         JSONObject body = response.getJSONObject("body");
         JSONObject items = body.getJSONObject("items");
         JSONArray item = items.getJSONArray("item");
-        for(int i=0; i<item.length()&&i<84; i++){//6시간 정도의 기상정보를 받아옴.
+        for(int i=0; i<item.length()&&i<14; i++){
             JSONObject nowItem = item.getJSONObject(i);
 
             String fcstDate = nowItem.getString("fcstDate");
@@ -162,8 +156,8 @@ public class WeatherService {
             String mapKey = fcstDate+fcstTime;
             String[] strArr = new String[]{category, fcstValue};
 
-            if(map.containsKey(fcstDate+fcstTime)){
-                map.get(fcstDate+fcstTime).add(strArr);
+            if(map.containsKey(mapKey)){
+                map.get(mapKey).add(strArr);
             }else{
                 List<String[]> list = new ArrayList<>();
                 list.add(strArr);
@@ -174,7 +168,7 @@ public class WeatherService {
 
     private void checkResultCode(String resultCode) {
         if(resultCode.equals("00")){
-            //정상
+            return;
         }else if(resultCode.equals("01")){
             throw new IllegalStateException("어플리케이션 에러.");
         }else if(resultCode.equals("02")){
@@ -220,5 +214,53 @@ public class WeatherService {
             else{ return "2300"; }
         }
         return "2300";
+    }
+
+    public vilageFcst getWeatherInfo(String sessionStr, int pageNo, int numOfRows){
+        SessionInfo session = sessionCrud.getSessionBySessionStr(sessionStr);
+        if(session==null){
+            throw new IllegalStateException("session 이 만료되었거나 존재하지 않습니다.");
+        }
+
+        UserInfo user = userCrud.getUserById(session.getUserId());
+        if(user==null){
+            throw new IllegalStateException("사용자 정보를 받아오지 못했습니다.");
+        }
+
+        Address address = addressCrud.getAddressById(user.getAddressId());
+        if(address==null){
+            throw new IllegalStateException("사용자 주소 정보를 받아오지 못했습니다.");
+        }
+
+        LocalDateTime time = LocalDateTime.now();
+        if(time.getHour()<2){
+            time.minusDays(1);
+        }
+        Date date = Timestamp.valueOf(time);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        String baseDate = dateFormat.format(date);
+        String baseTime = getBaseTime(time.getHour(), time.getMinute());
+
+        time.plusHours(1);
+        date = Timestamp.valueOf(time);
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH00");
+        String hour = timeFormat.format(date);
+
+        GpsTransfer gpsTransfer = new GpsTransfer();
+        gpsTransfer.transfer(1, address.getX(), address.getY());
+
+        int x = (int)Math.round(gpsTransfer.getLat());
+        int y = (int)Math.round(gpsTransfer.getLng());
+
+        return weatherClient.getWeatherInfo(
+                key,
+                String.valueOf(pageNo),
+                String.valueOf(numOfRows),
+                "JSON",
+                baseDate,
+                baseTime,
+                String.valueOf(x),
+                String.valueOf(y));
     }
 }
