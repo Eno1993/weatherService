@@ -7,6 +7,7 @@ import com.weatherService.weatherService.domian.en.UserStatus;
 import com.weatherService.weatherService.repository.AddressCrud;
 import com.weatherService.weatherService.repository.SessionCrud;
 import com.weatherService.weatherService.repository.UserCrud;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 public class UserService {
 

@@ -1,5 +1,6 @@
 package com.weatherService.weatherService.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weatherService.weatherService.client.dto.addressDto.search;
 import com.weatherService.weatherService.client.feign.AddressClient;
 import com.weatherService.weatherService.domian.Address;
@@ -24,7 +25,7 @@ public class AddressService {
     private AddressCrud addressCrud;
     @Autowired
     private AddressClient addressClient;
-    private final String key = "CDC17206-0BD4-35D3-8105-7A948C05C9C7";
+    private final String apiKey = "CDC17206-0BD4-35D3-8105-7A948C05C9C7";
 
     public int saveAllAddress(String addressStr) {
 
@@ -44,7 +45,7 @@ public class AddressService {
             urlBuilder.append("&category=" + URLEncoder.encode("road", "UTF-8"));
             urlBuilder.append("&format=" + URLEncoder.encode("json", "UTF-8"));
             urlBuilder.append("&errorformat=" + URLEncoder.encode("json", "UTF-8"));
-            urlBuilder.append("&key=" + URLEncoder.encode(key, "UTF-8"));
+            urlBuilder.append("&key=" + URLEncoder.encode(apiKey, "UTF-8"));
 
             URL url = new URL(urlBuilder.toString());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -108,7 +109,7 @@ public class AddressService {
         return addressCrud.getAddressAll();
     }
 
-    public search getAddressInfo(String address){
+    public search getAddressInfo(String addressStr){
         return addressClient.getAddressInfo(
                 "search",
                 "search",
@@ -116,12 +117,12 @@ public class AddressService {
                 "EPSG:4326",
                 "10",
                 "1",
-                address,
+                addressStr,
                 "address",
                 "road",
                 "json",
                 "json",
-                key
+                apiKey
         );
     }
 }
